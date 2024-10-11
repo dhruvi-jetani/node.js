@@ -1,0 +1,294 @@
+npm init 
+npm install nodemone
+npm install express
+npm install cors
+npm install mongoose
+npm install sequelize
+============
+mongo
+============
+controller.js
+----------------
+const Users = require('./../model/model');
+exports.index = async (req,res)=>{
+    const users =await Users.find()
+    res.status(201).json(users);
+}
+exports.store = async (req,res)=>{
+    const data = await Users.create(req.body);
+    res.send("Data inserted success")
+}
+exports.destroy = async (req,res)=>{
+    const data = await Users.findByIdAndDelete(req.body._id);
+    res.send("data deleted");
+}
+exports.update = async (req,res)=>{
+    const data = await Users.findByIdAndUpdate(req.body._id,req.body,{new:true});
+    res.send("data updated");
+}
+---------------------------
+model.js
+const mongoose = require('mongoose')
+const User = new  mongoose.Schema(
+    {
+        name:{
+            type:String,
+            required:true,
+        },
+        rollNo:{
+            type:Number,
+            required:true,
+        }
+})
+const Users = mongoose.model('User',User);
+module.exports =  Users;
+-----------------------------
+route.js
+const express = require('express');
+const controller = require('./../controller/controller')
+const app = express()
+const router = express.Router();
+router.get('/',controller.index);
+router.post('/',controller.store);
+router.put('/',controller.update);
+router.delete('/',controller.destroy);
+module.exports = router;
+--------------------------
+index.js
+const express = require('express');
+const mongoose = require('mongoose');
+const route = require('./route/route');
+const cors = require('cors')
+const connectDb =  async ()=>{
+    try { 
+        const connection = await mongoose.connect("mongodb+srv://dhruvi:panipuri26@cluster0.qdabv.mongodb.net/users",{});
+        console.log("Mongo connected");
+    } catch (error) {
+        console.log(error)  
+    }
+}
+const app = express();
+app.use(express.json());
+connectDb();
+app.use('/users',route)
+app.listen(1234,()=>{
+    console.log("port is running 1234");
+})
+----------------------
+package.json
+{
+  "name": "node",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.0",
+    "mongodb": "^6.9.0",
+    "mongoose": "^8.7.0",
+    "node": "file:",
+    "nodemon": "^3.1.7"
+  }
+}
+================================
+sql
+=======
+db.js
+var mysql = require('mysql');
+const express = require('express');
+const app =express()
+var db = mysql.createConnection({
+    host: 'localhost',
+    user: 'root',
+    password: '',
+    database: 'mca'
+});
+db.connect(function(error) {
+    if (!!error) {
+        console.log(error);
+    } else {
+        console.log('successfull')
+    }
+});
+module.exports = db;
+----------------------
+index.js
+const express = require('express');
+const app = express();
+const router = require('./route');
+app.use('/api', router);
+// run server
+app.listen(5000, () => { console.log('Running 5000'); });
+----------------------
+package.json
+{
+    "name": "y",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "start": "nodemon index.js"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "cors": "^2.8.5",
+        "express": "^4.20.0",
+        "mysql": "^2.18.1",
+        "nodemon": "^3.1.4"
+    }
+}
+------------------------
+route.js
+// const express = require('express');
+// const userController = require('./usersController');
+// var mysql = require('mysql');
+// const router = express.Router();
+// router.get('/users', userController.index);
+// router.get('/users', userController.show);
+// router.post('/users', userController.store);
+// router.put('/users', userController.update);
+// router.delete('/student', userController.destroy);
+// module.exports = router;
+const express = require('express');
+const userController = require('./usersController');  // Make sure the path is correct
+const router = express.Router();
+router.get('/users', userController.index);
+router.get('/users/:id', userController.show);
+router.post('/users', userController.store);
+router.put('/users/:id', userController.update);
+// Make sure the 'destroy' function exists in the controller
+router.delete('/users/:id', userController.delete);  // Fix the route if necessary
+module.exports = router;
+-----------------------
+usercontroller.js
+// const db = require('./db')
+// const express = require('express');
+// exports.store = async(req, res) => {
+//     var form_data = {
+//         name: req.body.name,
+//         email: req.body.email,
+//         position: req.body.position,
+//     }
+//     db.query('INSERT INTO users set?', form_data, function(err, result) {
+//         if (err) {
+//             res.json('error', err)
+//         } else {
+//             res.json('success', 'inserted successfully')
+//         }
+//     });
+// }
+// // update
+// exports.update = async(req, res) => {
+//     var form_data = {
+//         name: req.body.name,
+//         email: req.body.email,
+//         position: req.body.position,
+//     }
+//     db.update('UPDATE users set? where id' + req.body.id, form_data, function(err, result) {
+//         if (err) {
+//             req.json('error', err)
+//         } else {
+//             req.json('success', 'update successfully')
+//         }
+//     });
+// }
+// // delete
+// exports.delete = async(req, res) => {
+//     db.delete('delete from  users where id' + req.body.id, form_data, function(err, result) {
+//         if (err) {
+//             req.json('error', err)
+//         } else {
+//             req.json('success', 'delete successfully')
+//         }
+//     });
+// }
+// // retrive
+// exports.index = async(req, res) => {
+//     db.query('select * from users ', function(err, result) {
+//         if (err) {
+//             req.json('error', err)
+//         } else {
+//             res.json('success', result)
+//         }
+//     });
+// }
+// exports.show = async(req, res) => {
+//     db.query('select * from users where is=' + req.params.id, function(err, result) {
+//         if (err) {
+//             req.json('error', err)
+//         } else {
+//             res.json('success', result)
+//         }
+//     });
+// }
+const db = require('./db');
+// Store user
+exports.store = async (req, res) => {
+    var form_data = {
+        name: req.body.name,
+        email: req.body.email,
+        position: req.body.position,
+    };
+
+    db.query('INSERT INTO users SET ?', form_data, function(err, result) {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        } else {
+            return res.status(200).json({ success: 'Inserted successfully' });
+        }
+    });
+};
+// Update user
+exports.update = async (req, res) => {
+    var form_data = {
+        name: req.body.name,
+        email: req.body.email,
+        position: req.body.position,
+    };
+    db.query('UPDATE users SET ? WHERE id = ?', [form_data, req.body.id], function(err, result) {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        } else {
+            return res.status(200).json({ success: 'Updated successfully' });
+        }
+    });
+};
+// Delete user
+exports.delete = async (req, res) => {
+    db.query('DELETE FROM users WHERE id = ?', [req.body.id],
+        function(err, result) {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        } else {
+            return res.status(200).json({ success: 'Deleted successfully' });
+        }
+    });
+};
+// Retrieve all users
+exports.index = async (req, res) => {
+    db.query('SELECT * FROM users', function(err, result) {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        } else {
+            return res.status(200).json({ success: result });
+        }
+    });
+};
+// Retrieve a single user
+exports.show = async (req, res) => {
+    db.query('SELECT * FROM users WHERE id = ?', [req.params.id], function(err, result) {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        } else {
+            return res.status(200).json({ success: result });
+        }
+    });
+};
