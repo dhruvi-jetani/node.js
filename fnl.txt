@@ -1,0 +1,132 @@
+db
+var mysql = require('mysql');
+const express = require('express');
+const app =express()
+var db = mysql.createConnection({
+    host: 'localhost',
+    user: 'root',
+    password: '',
+    database: 'mca'
+});
+db.connect(function(error) {
+    if (!!error) {
+        console.log(error);
+    } else {
+        console.log('successfull')
+    }
+});
+module.exports = db;
+==============
+index
+const express = require('express');
+const app = express();
+const router = require('./route');
+app.use('/api', router);
+// run server
+app.listen(5000, () => { console.log('Running 5000'); });
+=================
+package
+{
+    "name": "y",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "start": "nodemon index.js"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "cors": "^2.8.5",
+        "express": "^4.20.0",
+        "mysql": "^2.18.1",
+        "nodemon": "^3.1.4"
+    }
+}
+================
+route
+const express = require('express');
+const userController = require('./usersController');  // Make sure the path is correct
+const router = express.Router();
+
+router.get('/users', userController.index);
+router.get('/users/:id', userController.show);
+router.post('/users', userController.store);
+router.put('/users/:id', userController.update);
+// Make sure the 'destroy' function exists in the controller
+router.delete('/users/:id', userController.delete);  // Fix the route if necessary
+
+module.exports = router;
+==============
+usersController
+const db = require('./db');
+
+// Store user
+exports.store = async (req, res) => {
+    var form_data = {
+        name: req.body.name,
+        email: req.body.email,
+        position: req.body.position,
+    };
+
+    db.query('INSERT INTO users SET ?', form_data, function(err, result) {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        } else {
+            return res.status(200).json({ success: 'Inserted successfully' });
+        }
+    });
+};
+
+// Update user
+exports.update = async (req, res) => {
+    var form_data = {
+        name: req.body.name,
+        email: req.body.email,
+        position: req.body.position,
+    };
+
+    db.query('UPDATE users SET ? WHERE id = ?', [form_data, req.body.id], function(err, result) {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        } else {
+            return res.status(200).json({ success: 'Updated successfully' });
+        }
+    });
+};
+
+// Delete user
+exports.delete = async (req, res) => {
+    db.query('DELETE FROM users WHERE id = ?', [req.body.id],
+        function(err, result) {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        } else {
+            return res.status(200).json({ success: 'Deleted successfully' });
+        }
+    });
+};
+
+
+// Retrieve all users
+exports.index = async (req, res) => {
+    db.query('SELECT * FROM users', function(err, result) {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        } else {
+            return res.status(200).json({ success: result });
+        }
+    });
+};
+
+// Retrieve a single user
+exports.show = async (req, res) => {
+    db.query('SELECT * FROM users WHERE id = ?', [req.params.id], function(err, result) {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        } else {
+            return res.status(200).json({ success: result });
+        }
+    });
+};
